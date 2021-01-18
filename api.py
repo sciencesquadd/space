@@ -28,6 +28,41 @@ def api_all():
     return jsonify(all_books)
 
 
+@app.route('/api/v1/launches/all', methods=['GET'])
+def all_flights():
+    conn = sqlite3.connect('launches.db')
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+    every_flight = cur.execute('SELECT * FROM Every;').fetchall()
+
+    return jsonify(every_flight)
+
+
+@app.route('/api/v1/launches', methods=['GET'])
+def flights_filter():
+    query_parameters = request.args
+
+    id = query_parameters.get('id')
+
+    query = "SELECT * FROM Every WHERE"
+    to_filter = []
+
+    if id:
+        query += ' id=? AND'
+        to_filter.append(id)
+    if not (id):
+        return page_not_found(404)
+
+    query = query[:-4] + ';'
+
+    conn = sqlite3.connect('launches.db')
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    results = cur.execute(query, to_filter).fetchall()
+
+    return jsonify(results)
+
 
 @app.errorhandler(404)
 def page_not_found(e):
